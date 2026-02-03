@@ -1,0 +1,17 @@
+node_modules
+dist
+dist-ssr
+.git
+.gitignore
+.gitlab-ci.yml
+.dockerignore
+.env
+.env.*
+.claude
+*.md
+*.log
+.vscode
+.idea
+.DS_Store
+stats.html
+src/__tests__

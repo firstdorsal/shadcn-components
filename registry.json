@@ -1,0 +1,63 @@
+{
+    "$schema": "https://ui.shadcn.com/schema/registry.json",
+    "name": "shadcn-date-time-picker",
+    "homepage": "",
+    "items": [
+        {
+            "name": "date-time-picker",
+            "type": "registry:component",
+            "title": "Date Time Picker",
+            "description": "Date and time picker with text input, calendar popover, year selection, configurable time format (12h/24h), optional seconds, timezone selector, and drag-to-resize range selection. Supports single and range selection modes.",
+            "registryDependencies": [
+                "button",
+                "input",
+                "popover",
+                "calendar",
+                "scroll-area",
+                "command"
+            ],
+            "dependencies": [
+                "date-fns@^4.1.0",
+                "@date-fns/tz@^1.4.1"
+            ],
+            "files": [
+                {
+                    "path": "src/registry/new-york/date-time-picker/date-time-picker.tsx",
+                    "type": "registry:component"
+                },
+                {
+                    "path": "src/registry/new-york/date-time-picker/date-time-range-picker.tsx",
+                    "type": "registry:component"
+                },
+                {
+                    "path": "src/registry/new-york/date-time-picker/components/date-time-input.tsx",
+                    "type": "registry:component"
+                },
+                {
+                    "path": "src/registry/new-york/date-time-picker/components/time-picker.tsx",
+                    "type": "registry:component"
+                },
+                {
+                    "path": "src/registry/new-york/date-time-picker/components/timezone-selector.tsx",
+                    "type": "registry:component"
+                },
+                {
+                    "path": "src/registry/new-york/date-time-picker/lib/date-time-utils.ts",
+                    "type": "registry:lib"
+                },
+                {
+                    "path": "src/registry/new-york/date-time-picker/lib/timezone-utils.ts",
+                    "type": "registry:lib"
+                },
+                {
+                    "path": "src/registry/new-york/date-time-picker/hooks/use-date-time-picker.ts",
+                    "type": "registry:hook"
+                },
+                {
+                    "path": "src/registry/new-york/date-time-picker/hooks/use-date-time-range-picker.ts",
+                    "type": "registry:hook"
+                }
+            ]
+        }
+    ]
+}

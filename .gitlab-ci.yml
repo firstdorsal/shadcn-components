@@ -1,0 +1,32 @@
+stages:
+    - test
+    - docker-build
+
+test:
+    stage: test
+    image: node:23-alpine
+    before_script:
+        - corepack enable && corepack prepare pnpm@latest --activate
+        - pnpm install --frozen-lockfile
+    script:
+        - pnpm lint
+        - pnpm test
+        - pnpm build
+
+docker-build:
+    stage: docker-build
+    image:
+        name: gcr.io/kaniko-project/executor:v1.23.2
+        entrypoint: [""]
+    script:
+        - export CI_REGISTRY=hub.vindelicum.eu
+        - mkdir -p /kaniko/.docker
+        - echo "{\"auths\":{\"https://$CI_REGISTRY\":{\"auth\":\"$(printf "%s:%s" "docker" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+        - >-
+            /kaniko/executor
+            --context "${CI_PROJECT_DIR}"
+            --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
+            --destination "$CI_REGISTRY/$CI_PROJECT_NAME:latest"
+            --destination "$CI_REGISTRY/$CI_PROJECT_NAME:${CI_COMMIT_SHORT_SHA}"
+            --cache=true
+            --cache-repo "$CI_REGISTRY/$CI_PROJECT_NAME/cache"
