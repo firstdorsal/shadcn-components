@@ -12,7 +12,7 @@ import {
     CommandList
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { getTimezoneOptions } from "@/registry/new-york/date-time-picker/lib/timezone-utils";
+import { getTimezoneOptions } from "@/lib/timezone-utils";
 
 /** Props for the `TimezoneSelector` component. */
 interface TimezoneSelectorProps {

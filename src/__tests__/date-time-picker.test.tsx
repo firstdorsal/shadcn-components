@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { TZDate } from "@date-fns/tz";
-import { DateTimePicker } from "@/registry/new-york/date-time-picker/date-time-picker";
+import { DateTimePicker } from "@/components/ui/date-time-picker";
 
 describe(`DateTimePicker`, () => {
     it(`renders with 24h placeholder`, () => {

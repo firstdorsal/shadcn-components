@@ -4,7 +4,7 @@ import {
     getFormatString,
     getPlaceholder,
     parseDateTimeString
-} from "@/registry/new-york/date-time-picker/lib/date-time-utils";
+} from "@/lib/date-time-utils";
 
 describe(`getFormatString`, () => {
     it(`returns 24h format without seconds`, () => {

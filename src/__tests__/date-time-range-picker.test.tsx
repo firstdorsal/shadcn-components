@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { TZDate } from "@date-fns/tz";
-import { DateTimeRangePicker } from "@/registry/new-york/date-time-picker/date-time-range-picker";
+import { DateTimeRangePicker } from "@/components/ui/date-time-range-picker";
 
 describe(`DateTimeRangePicker`, () => {
     it(`renders start and end inputs with 24h placeholder`, () => {

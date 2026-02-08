@@ -5,9 +5,9 @@ import { AlertTriangle, Github, Menu, Moon, Sun, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { HotkeyInput, type Hotkey, formatHotkey } from "@/components/ui/hotkey-input";
-import { DateTimePicker } from "@/registry/new-york/date-time-picker/date-time-picker";
-import { DateTimeRangePicker } from "@/registry/new-york/date-time-picker/date-time-range-picker";
-import type { DateTimeRange } from "@/registry/new-york/date-time-picker/hooks/use-date-time-range-picker";
+import { DateTimePicker } from "@/components/ui/date-time-picker";
+import { DateTimeRangePicker } from "@/components/ui/date-time-range-picker";
+import type { DateTimeRange } from "@/hooks/use-date-time-range-picker";
 
 // ---------------------------------------------------------------------------
 // Navigation items

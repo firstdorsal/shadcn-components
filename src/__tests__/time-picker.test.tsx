@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { TimePicker } from "@/registry/new-york/date-time-picker/components/time-picker";
+import { TimePicker } from "@/components/ui/time-picker";
 
 describe(`TimePicker`, () => {
     it(`renders hours 0-23 in 24h mode`, () => {

@@ -4,7 +4,7 @@ import {
     formatDateTime,
     parseDateTimeString,
     type DateTimeFormatOptions
-} from "@/registry/new-york/date-time-picker/lib/date-time-utils";
+} from "@/lib/date-time-utils";
 
 /** Options for the `useDateTimePicker` hook. */
 interface UseDateTimePickerOptions {

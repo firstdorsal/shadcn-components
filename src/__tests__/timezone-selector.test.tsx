@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeAll, describe, expect, it, vi } from "vitest";
-import { TimezoneSelector } from "@/registry/new-york/date-time-picker/components/timezone-selector";
+import { TimezoneSelector } from "@/components/ui/timezone-selector";
 
 beforeAll(() => {
     global.ResizeObserver = class {

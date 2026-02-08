@@ -5,7 +5,7 @@ import {
     formatDateTime,
     parseDateTimeString,
     type DateTimeFormatOptions
-} from "@/registry/new-york/date-time-picker/lib/date-time-utils";
+} from "@/lib/date-time-utils";
 
 /** A date range with optional start and end. */
 interface DateTimeRange {

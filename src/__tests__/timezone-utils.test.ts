@@ -2,7 +2,7 @@ import { describe, expect, it, beforeEach } from "vitest";
 import {
     clearTimezoneCache,
     getTimezoneOptions
-} from "@/registry/new-york/date-time-picker/lib/timezone-utils";
+} from "@/lib/timezone-utils";
 
 describe(`getTimezoneOptions`, () => {
     beforeEach(() => {

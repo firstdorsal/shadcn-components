@@ -21,40 +21,49 @@
             ],
             "files": [
                 {
-                    "path": "src/registry/new-york/date-time-picker/date-time-picker.tsx",
-                    "type": "registry:component"
+                    "path": "src/components/ui/date-time-picker.tsx",
+                    "type": "registry:component",
+                    "target": "components/ui/date-time-picker.tsx"
                 },
                 {
-                    "path": "src/registry/new-york/date-time-picker/date-time-range-picker.tsx",
-                    "type": "registry:component"
+                    "path": "src/components/ui/date-time-range-picker.tsx",
+                    "type": "registry:component",
+                    "target": "components/ui/date-time-range-picker.tsx"
                 },
                 {
-                    "path": "src/registry/new-york/date-time-picker/components/date-time-input.tsx",
-                    "type": "registry:component"
+                    "path": "src/components/ui/date-time-input.tsx",
+                    "type": "registry:component",
+                    "target": "components/ui/date-time-input.tsx"
                 },
                 {
-                    "path": "src/registry/new-york/date-time-picker/components/time-picker.tsx",
-                    "type": "registry:component"
+                    "path": "src/components/ui/time-picker.tsx",
+                    "type": "registry:component",
+                    "target": "components/ui/time-picker.tsx"
                 },
                 {
-                    "path": "src/registry/new-york/date-time-picker/components/timezone-selector.tsx",
-                    "type": "registry:component"
+                    "path": "src/components/ui/timezone-selector.tsx",
+                    "type": "registry:component",
+                    "target": "components/ui/timezone-selector.tsx"
                 },
                 {
-                    "path": "src/registry/new-york/date-time-picker/lib/date-time-utils.ts",
-                    "type": "registry:lib"
+                    "path": "src/lib/date-time-utils.ts",
+                    "type": "registry:lib",
+                    "target": "lib/date-time-utils.ts"
                 },
                 {
-                    "path": "src/registry/new-york/date-time-picker/lib/timezone-utils.ts",
-                    "type": "registry:lib"
+                    "path": "src/lib/timezone-utils.ts",
+                    "type": "registry:lib",
+                    "target": "lib/timezone-utils.ts"
                 },
                 {
-                    "path": "src/registry/new-york/date-time-picker/hooks/use-date-time-picker.ts",
-                    "type": "registry:hook"
+                    "path": "src/hooks/use-date-time-picker.ts",
+                    "type": "registry:hook",
+                    "target": "hooks/use-date-time-picker.ts"
                 },
                 {
-                    "path": "src/registry/new-york/date-time-picker/hooks/use-date-time-range-picker.ts",
-                    "type": "registry:hook"
+                    "path": "src/hooks/use-date-time-range-picker.ts",
+                    "type": "registry:hook",
+                    "target": "hooks/use-date-time-range-picker.ts"
                 },
                 {
                     "path": "src/components/ui/calendar.tsx",

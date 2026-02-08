@@ -7,14 +7,14 @@ import {
     PopoverContent
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { DateTimeInput } from "@/registry/new-york/date-time-picker/components/date-time-input";
-import { TimePicker } from "@/registry/new-york/date-time-picker/components/time-picker";
-import { TimezoneSelector } from "@/registry/new-york/date-time-picker/components/timezone-selector";
-import { useDateTimePicker } from "@/registry/new-york/date-time-picker/hooks/use-date-time-picker";
+import { DateTimeInput } from "@/components/ui/date-time-input";
+import { TimePicker } from "@/components/ui/time-picker";
+import { TimezoneSelector } from "@/components/ui/timezone-selector";
+import { useDateTimePicker } from "@/hooks/use-date-time-picker";
 import {
     getDetectedTimeFormat,
     getPlaceholder
-} from "@/registry/new-york/date-time-picker/lib/date-time-utils";
+} from "@/lib/date-time-utils";
 
 /** Props for the `DateTimePicker` component. */
 interface DateTimePickerProps {

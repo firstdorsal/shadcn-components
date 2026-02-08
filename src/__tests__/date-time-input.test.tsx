@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { DateTimeInput } from "@/registry/new-york/date-time-picker/components/date-time-input";
+import { DateTimeInput } from "@/components/ui/date-time-input";
 
 describe(`DateTimeInput`, () => {
     const defaultProps = {
