@@ -6,6 +6,7 @@ import UnpluginInjectPreload from "unplugin-inject-preload/vite";
 import { defineConfig } from "vite";
 
 export default defineConfig({
+    base: `/shadcn-components/`,
     resolve: {
         alias: {
             "@": path.resolve(__dirname, `./src`)

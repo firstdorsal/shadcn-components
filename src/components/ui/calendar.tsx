@@ -21,7 +21,7 @@ const YEARS_PER_PAGE = 20
 const Calendar = ({
   className,
   classNames,
-  showOutsideDays = true,
+  showOutsideDays = false,
   captionLayout = `label`,
   buttonVariant = `ghost`,
   formatters,

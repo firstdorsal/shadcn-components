@@ -1130,4 +1130,201 @@ describe(`DateTimeRangePicker accessibility`, () => {
         expect(minutesBoxes.length).toBeGreaterThanOrEqual(2);
         expect(secondsBoxes.length).toBeGreaterThanOrEqual(2);
     });
+
+    // ---- Duration display ----------------------------------------------------
+
+    it(`does not show duration text by default`, () => {
+        const from = new Date(2025, 1, 10);
+        const to = new Date(2025, 1, 15);
+        render(
+            <DateTimeRangePicker
+                timeFormat={`24h`}
+                value={{ from, to }}
+            />
+        );
+        expect(screen.queryByText(/day/)).not.toBeInTheDocument();
+    });
+
+    it(`shows duration text when showDuration is true and range is complete`, () => {
+        const from = new Date(2025, 1, 10);
+        const to = new Date(2025, 1, 15);
+        render(
+            <DateTimeRangePicker
+                timeFormat={`24h`}
+                value={{ from, to }}
+                showDuration={true}
+            />
+        );
+        // Feb 10–15: 5 nights, 6 days
+        expect(screen.getByText(`6 days, 5 nights`)).toBeInTheDocument();
+    });
+
+    it(`does not show duration when range is incomplete`, () => {
+        const from = new Date(2025, 1, 10);
+        render(
+            <DateTimeRangePicker
+                timeFormat={`24h`}
+                value={{ from, to: undefined }}
+                showDuration={true}
+            />
+        );
+        expect(screen.queryByText(/day/)).not.toBeInTheDocument();
+    });
+
+    it(`shows correct singular for same-day range`, () => {
+        const day = new Date(2025, 1, 10);
+        render(
+            <DateTimeRangePicker
+                timeFormat={`24h`}
+                value={{ from: day, to: day }}
+                showDuration={true}
+            />
+        );
+        // Same day: 0 nights, 1 day
+        expect(screen.getByText(`1 day, 0 nights`)).toBeInTheDocument();
+    });
+
+    it(`shows correct duration for single-night range`, () => {
+        const from = new Date(2025, 1, 10);
+        const to = new Date(2025, 1, 11);
+        render(
+            <DateTimeRangePicker
+                timeFormat={`24h`}
+                value={{ from, to }}
+                showDuration={true}
+            />
+        );
+        // Feb 10–11: 1 night, 2 days
+        expect(screen.getByText(`2 days, 1 night`)).toBeInTheDocument();
+    });
+
+    // ---- Duration edge cases -------------------------------------------------
+
+    it(`handles leap year correctly (Feb 28 to Mar 1, 2024)`, () => {
+        // 2024 is a leap year, so Feb has 29 days
+        const from = new Date(2024, 1, 28); // Feb 28, 2024
+        const to = new Date(2024, 2, 1);    // Mar 1, 2024
+        render(
+            <DateTimeRangePicker
+                timeFormat={`24h`}
+                value={{ from, to }}
+                showDuration={true}
+            />
+        );
+        // Feb 28, Feb 29, Mar 1 = 3 days, 2 nights
+        expect(screen.getByText(`3 days, 2 nights`)).toBeInTheDocument();
+    });
+
+    it(`handles non-leap year correctly (Feb 28 to Mar 1, 2023)`, () => {
+        // 2023 is not a leap year
+        const from = new Date(2023, 1, 28); // Feb 28, 2023
+        const to = new Date(2023, 2, 1);    // Mar 1, 2023
+        render(
+            <DateTimeRangePicker
+                timeFormat={`24h`}
+                value={{ from, to }}
+                showDuration={true}
+            />
+        );
+        // Feb 28, Mar 1 = 2 days, 1 night
+        expect(screen.getByText(`2 days, 1 night`)).toBeInTheDocument();
+    });
+
+    it(`handles large multi-year ranges`, () => {
+        const from = new Date(2020, 0, 1);  // Jan 1, 2020
+        const to = new Date(2025, 0, 1);    // Jan 1, 2025
+        render(
+            <DateTimeRangePicker
+                timeFormat={`24h`}
+                value={{ from, to }}
+                showDuration={true}
+            />
+        );
+        // 5 years spanning 2020-2024 (leap years: 2020, 2024)
+        // Days: 366+365+365+365+366 = 1827 nights, 1828 days (includes both endpoints)
+        expect(screen.getByText(`1828 days, 1827 nights`)).toBeInTheDocument();
+    });
+
+    it(`ignores time components in duration calculation`, () => {
+        // Times are different but days should be the same
+        const from = new Date(2025, 1, 10, 23, 59, 59, 999);
+        const to = new Date(2025, 1, 12, 0, 0, 0, 1);
+        render(
+            <DateTimeRangePicker
+                timeFormat={`24h`}
+                value={{ from, to }}
+                showDuration={true}
+            />
+        );
+        // Feb 10, 11, 12 = 3 days, 2 nights (time stripped to midnight)
+        expect(screen.getByText(`3 days, 2 nights`)).toBeInTheDocument();
+    });
+
+    it(`handles reversed dates (returns null for negative duration)`, () => {
+        const from = new Date(2025, 1, 15);
+        const to = new Date(2025, 1, 10);  // Before from
+        render(
+            <DateTimeRangePicker
+                timeFormat={`24h`}
+                value={{ from, to }}
+                showDuration={true}
+            />
+        );
+        // Negative duration should not display
+        expect(screen.queryByText(/day/)).not.toBeInTheDocument();
+    });
+
+    it(`handles DST spring forward (US Eastern Mar 9, 2025)`, () => {
+        // US Eastern DST starts Mar 9, 2025 at 2:00 AM
+        // From Mar 8 to Mar 10 crosses DST boundary
+        const from = new Date(2025, 2, 8);  // Mar 8, 2025
+        const to = new Date(2025, 2, 10);   // Mar 10, 2025
+        render(
+            <DateTimeRangePicker
+                timeFormat={`24h`}
+                value={{ from, to }}
+                showDuration={true}
+            />
+        );
+        // Mar 8, 9, 10 = 3 days, 2 nights (regardless of DST)
+        expect(screen.getByText(`3 days, 2 nights`)).toBeInTheDocument();
+    });
+
+    it(`handles DST fall back (US Eastern Nov 2, 2025)`, () => {
+        // US Eastern DST ends Nov 2, 2025 at 2:00 AM
+        const from = new Date(2025, 10, 1);  // Nov 1, 2025
+        const to = new Date(2025, 10, 3);    // Nov 3, 2025
+        render(
+            <DateTimeRangePicker
+                timeFormat={`24h`}
+                value={{ from, to }}
+                showDuration={true}
+            />
+        );
+        // Nov 1, 2, 3 = 3 days, 2 nights (regardless of DST)
+        expect(screen.getByText(`3 days, 2 nights`)).toBeInTheDocument();
+    });
+
+    // ---- Controlled mode duration update -------------------------------------
+
+    it(`updates duration immediately when controlled value changes`, () => {
+        const { rerender } = render(
+            <DateTimeRangePicker
+                timeFormat={`24h`}
+                value={{ from: new Date(2025, 1, 10), to: new Date(2025, 1, 12) }}
+                showDuration={true}
+            />
+        );
+        expect(screen.getByText(`3 days, 2 nights`)).toBeInTheDocument();
+
+        // Update to a different range
+        rerender(
+            <DateTimeRangePicker
+                timeFormat={`24h`}
+                value={{ from: new Date(2025, 1, 10), to: new Date(2025, 1, 15) }}
+                showDuration={true}
+            />
+        );
+        expect(screen.getByText(`6 days, 5 nights`)).toBeInTheDocument();
+    });
 });

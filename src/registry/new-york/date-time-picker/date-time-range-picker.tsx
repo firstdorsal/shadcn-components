@@ -76,6 +76,9 @@ const stripTime = (d: Date): Date => {
     return stripped;
 };
 
+// Milliseconds per day for duration calculations
+const MS_PER_DAY = 86_400_000;
+
 // Stable style object to avoid re-creating on every render
 const touchActionStyle = { touchAction: `none` } as const;
 const touchActionNoSelectStyle = {
@@ -228,6 +231,8 @@ interface DateTimeRangePickerProps {
     disabled?: boolean;
     /** Prevents selecting dates in the future. */
     disableFuture?: boolean;
+    /** Show a days/nights duration summary below the inputs. */
+    showDuration?: boolean;
     /** Additional CSS class for the root element. */
     className?: string;
 }
@@ -250,6 +255,7 @@ const DateTimeRangePicker = ({
     endPlaceholder,
     disabled,
     disableFuture,
+    showDuration,
     className
 }: DateTimeRangePickerProps) => {
     const picker = useDateTimeRangePicker({
@@ -403,6 +409,20 @@ const DateTimeRangePicker = ({
 
     const placeholderBase = getPlaceholder({ timeFormat, showSeconds });
 
+    // ---- Duration ------------------------------------------------------------
+
+    const durationText = React.useMemo(() => {
+        if (!picker.range.from || !picker.range.to) return null;
+        const nights = Math.floor(
+            (stripTime(picker.range.to).getTime() -
+                stripTime(picker.range.from).getTime()) /
+                MS_PER_DAY
+        );
+        if (nights < 0) return null;
+        const days = nights + 1;
+        return `${days} day${days !== 1 ? `s` : ``}, ${nights} night${nights !== 1 ? `s` : ``}`;
+    }, [picker.range.from, picker.range.to]);
+
     // ---- Render --------------------------------------------------------------
 
     return (
@@ -463,6 +483,11 @@ const DateTimeRangePicker = ({
                     </div>
                 </div>
             </PopoverAnchor>
+            {showDuration && durationText && (
+                <div className={`mt-1 text-xs text-muted-foreground`}>
+                    {durationText}
+                </div>
+            )}
             <PopoverContent
                 className={`w-auto p-0`}
                 align={`start`}

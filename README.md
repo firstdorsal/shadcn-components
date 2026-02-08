@@ -1,16 +1,31 @@
-# shadcn Date Time Picker
+# @firstdorsal/shadcn-components
 
-A date and time picker component built on [shadcn/ui](https://ui.shadcn.com/), [react-day-picker](https://daypicker.dev/), and Tailwind CSS 4.
+A production-ready shadcn component registry with date-time picker, hotkey input, and enhanced calendar components.
+
+**Live Demo:** [firstdorsal.github.io/shadcn-components](https://firstdorsal.github.io/shadcn-components)
 
 ## Installation
 
+Install components directly via the shadcn CLI:
+
 ```bash
-npx shadcn@latest add https://shadcn-date-time-picker.paularmstrong.dev/r/date-time-picker.json
+# Date Time Picker (includes range picker and enhanced calendar)
+pnpm dlx shadcn@latest add https://firstdorsal.github.io/shadcn-components/r/date-time-picker.json
+
+# Hotkey Input
+pnpm dlx shadcn@latest add https://firstdorsal.github.io/shadcn-components/r/hotkey-input.json
+
+# Enhanced Calendar (standalone)
+pnpm dlx shadcn@latest add https://firstdorsal.github.io/shadcn-components/r/calendar.json
 ```
 
-> **Note:** This component requires a modified `Calendar` component that exports `CalendarDayButton`, adds a `disableFuture` prop, and includes a year picker. The standard shadcn calendar is installed as a dependency but must include these modifications. See the source in `src/components/ui/calendar.tsx` for the full implementation.
+## Components
 
-## Features
+### Date Time Picker
+
+A full-featured date and time picker with calendar popover, timezone support, and keyboard-accessible input.
+
+#### Features
 
 - Single date-time picker and range picker
 - 12-hour and 24-hour time format
@@ -25,55 +40,46 @@ npx shadcn@latest add https://shadcn-date-time-picker.paularmstrong.dev/r/date-t
 - Dark mode support
 - Keyboard-accessible text input with validation
 
-## Usage
-
-### Single Date Time Picker
+#### Usage
 
 ```tsx
-import { DateTimePicker } from "@/registry/new-york/date-time-picker/date-time-picker";
+import { DateTimePicker } from "@/registry/new-york/date-time-picker/date-time-picker"
+
+// Basic usage
+<DateTimePicker
+  timeFormat="24h"
+  showSeconds={false}
+  onChange={(date) => console.log(date)}
+/>
+
+// Controlled with timezone
+const [date, setDate] = useState<Date | undefined>(undefined)
+const [tz, setTz] = useState("UTC")
 
 <DateTimePicker
-    timeFormat="24h"
-    showSeconds={false}
-    onChange={(date) => console.log(date)}
+  value={date}
+  onChange={setDate}
+  timeFormat="24h"
+  showTimezone
+  timeZone={tz}
+  onTimezoneChange={setTz}
 />
 ```
 
-### Range Date Time Picker
+#### Range Picker
 
 ```tsx
-import { DateTimeRangePicker } from "@/registry/new-york/date-time-picker/date-time-range-picker";
+import { DateTimeRangePicker } from "@/registry/new-york/date-time-picker/date-time-range-picker"
 
 <DateTimeRangePicker
-    timeFormat="24h"
-    onChange={(range) => console.log(range.from, range.to)}
+  timeFormat="24h"
+  onChange={(range) => console.log(range.from, range.to)}
 />
 ```
 
-### Controlled
+#### Props
 
-```tsx
-const [date, setDate] = useState<Date | undefined>(undefined);
-
-<DateTimePicker value={date} onChange={setDate} timeFormat="24h" />
-```
-
-### With Timezone
-
-```tsx
-const [tz, setTz] = useState("UTC");
-
-<DateTimePicker
-    timeFormat="24h"
-    showTimezone
-    timeZone={tz}
-    onTimezoneChange={setTz}
-/>
-```
-
-## Props
-
-### DateTimePicker
+##### DateTimePicker
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
@@ -90,7 +96,7 @@ const [tz, setTz] = useState("UTC");
 | `disabled` | `boolean` | `false` | Disable the picker |
 | `disableFuture` | `boolean` | `false` | Prevent future dates |
 
-### DateTimeRangePicker
+##### DateTimeRangePicker
 
 Same props as `DateTimePicker` except:
 
@@ -102,23 +108,129 @@ Same props as `DateTimePicker` except:
 | `startPlaceholder` | `string` | Auto-generated | Start input placeholder |
 | `endPlaceholder` | `string` | Auto-generated | End input placeholder |
 
+---
+
+### Hotkey Input
+
+A keyboard shortcut input component for capturing key combinations.
+
+#### Features
+
+- Captures key combinations with modifier keys (Ctrl, Alt, Shift, Meta)
+- Displays formatted hotkey (e.g., "Ctrl + Shift + K")
+- Optional modifier-only mode
+- Controlled and uncontrolled modes
+- Clear button
+- Disabled state
+
+#### Usage
+
+```tsx
+import { HotkeyInput, type Hotkey } from "@/components/ui/hotkey-input"
+
+// Uncontrolled
+<HotkeyInput
+  onChange={(hotkey) => console.log(hotkey)}
+  placeholder="Press a key combination..."
+/>
+
+// Controlled
+const [hotkey, setHotkey] = useState<Hotkey | null>(null)
+
+<HotkeyInput
+  value={hotkey}
+  onChange={setHotkey}
+/>
+```
+
+#### Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `value` | `Hotkey \| null` | — | Controlled hotkey value |
+| `defaultValue` | `Hotkey \| null` | `null` | Initial hotkey (uncontrolled) |
+| `onChange` | `(hotkey: Hotkey \| null) => void` | — | Change callback |
+| `disabled` | `boolean` | `false` | Disable the input |
+| `placeholder` | `string` | `"Press a key combination..."` | Placeholder text |
+| `allowModifierOnly` | `boolean` | `false` | Allow modifier-only shortcuts |
+| `className` | `string` | — | Additional CSS classes |
+
+#### Hotkey Type
+
+```typescript
+interface Hotkey {
+  key: string       // The key pressed (e.g., "k", "Enter")
+  code: string      // The key code (e.g., "KeyK", "Enter")
+  ctrlKey: boolean  // Ctrl modifier
+  shiftKey: boolean // Shift modifier
+  altKey: boolean   // Alt modifier
+  metaKey: boolean  // Meta (Cmd/Win) modifier
+}
+```
+
+#### Utilities
+
+```tsx
+import { formatHotkey, hotkeyEquals } from "@/components/ui/hotkey-input"
+
+// Format hotkey for display
+formatHotkey(hotkey) // "Ctrl + Shift + K"
+
+// Compare hotkeys
+hotkeyEquals(hotkey1, hotkey2) // true/false
+```
+
+---
+
+### Enhanced Calendar
+
+An extended shadcn calendar with year picker and future date restriction.
+
+#### Features
+
+- Clickable year in caption opens year picker
+- Year picker with decade navigation
+- `disableFuture` prop to prevent future date selection
+- All standard react-day-picker features
+
+#### Usage
+
+```tsx
+import { Calendar } from "@/components/ui/calendar"
+
+<Calendar
+  mode="single"
+  selected={date}
+  onSelect={setDate}
+  disableFuture
+/>
+```
+
+#### Additional Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `disableFuture` | `boolean` | `false` | Disable future dates |
+| `buttonVariant` | `ButtonVariant` | `"ghost"` | Navigation button variant |
+
+---
+
 ## Development
 
 ```bash
 pnpm install
-pnpm dev        # Start dev server
-pnpm test       # Run tests
-pnpm build      # Production build
-pnpm lint       # Lint
-pnpm registry:build  # Build shadcn registry JSON
+pnpm dev          # Start dev server on port 5174
+pnpm test         # Run tests
+pnpm test:watch   # Run tests in watch mode
+pnpm typecheck    # Type check
+pnpm lint         # Lint
+pnpm build        # Build demo + registry
 ```
 
 ## Deployment
 
-```bash
-cp .env.example .env
-# Edit .env with your values
-bash build.sh   # Build Docker image
-```
+Deployed automatically to GitHub Pages on push to `main` branch via GitHub Actions.
 
-The Docker image uses [feoco](https://github.com/pektin-dns/feoco) as a static file server with strict Content Security Policy headers configured in `server/config.yml`. The config file is mounted at runtime via `docker-compose.yaml`.
+## License
+
+MIT

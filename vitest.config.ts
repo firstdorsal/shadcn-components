@@ -8,7 +8,18 @@ export default mergeConfig(
         test: {
             environment: `jsdom`,
             setupFiles: `./vitest.setup.ts`,
-            globals: true
+            globals: true,
+            coverage: {
+                provider: `v8`,
+                reporter: [`text`, `json`, `html`],
+                exclude: [
+                    `node_modules/`,
+                    `dist/`,
+                    `**/*.test.{ts,tsx}`,
+                    `**/*.config.{ts,js}`,
+                    `vitest.setup.ts`
+                ]
+            }
         }
     })
 );

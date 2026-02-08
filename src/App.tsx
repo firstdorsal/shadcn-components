@@ -1,11 +1,60 @@
 import * as React from "react";
-import { Moon, Sun } from "lucide-react";
+import { AlertTriangle, Moon, Sun } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { DateTimePicker } from "@/registry/new-york/date-time-picker/date-time-picker";
 import { DateTimeRangePicker } from "@/registry/new-york/date-time-picker/date-time-range-picker";
 import type { DateTimeRange } from "@/registry/new-york/date-time-picker/hooks/use-date-time-range-picker";
+
+// ---------------------------------------------------------------------------
+// ErrorBoundary — catches component errors and displays fallback UI
+// ---------------------------------------------------------------------------
+
+interface ErrorBoundaryState {
+    hasError: boolean;
+    error: Error | null;
+}
+
+class ErrorBoundary extends React.Component<
+    { children: React.ReactNode },
+    ErrorBoundaryState
+> {
+    constructor(props: { children: React.ReactNode }) {
+        super(props);
+        this.state = { hasError: false, error: null };
+    }
+
+    static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+        return { hasError: true, error };
+    }
+
+    render() {
+        if (this.state.hasError) {
+            return (
+                <div className={`flex min-h-screen items-center justify-center bg-background p-8`}>
+                    <div className={`max-w-md rounded-lg border border-destructive/50 bg-destructive/10 p-6 text-center`}>
+                        <AlertTriangle className={`mx-auto mb-4 h-12 w-12 text-destructive`} />
+                        <h1 className={`mb-2 text-xl font-semibold text-destructive`}>
+                            Something went wrong
+                        </h1>
+                        <p className={`mb-4 text-sm text-muted-foreground`}>
+                            {this.state.error?.message ?? `An unexpected error occurred`}
+                        </p>
+                        <Button
+                            variant={`outline`}
+                            onClick={() => window.location.reload()}
+                        >
+                            Reload page
+                        </Button>
+                    </div>
+                </div>
+            );
+        }
+
+        return this.props.children;
+    }
+}
 
 // ---------------------------------------------------------------------------
 // DemoSection — reusable card for each showcase
@@ -345,6 +394,20 @@ const App = () => {
                 </DemoSection>
 
                 {/* ---------------------------------------------------------- */}
+                {/* Duration Display */}
+                {/* ---------------------------------------------------------- */}
+                <DemoSection
+                    title={`Duration Display`}
+                    description={`Show the number of days and nights below the range inputs.`}
+                >
+                    <DateTimeRangePicker
+                        timeFormat={`24h`}
+                        showDuration={true}
+                    />
+                    <PropTag>showDuration</PropTag>
+                </DemoSection>
+
+                {/* ---------------------------------------------------------- */}
                 {/* Disabled State */}
                 {/* ---------------------------------------------------------- */}
                 <DemoSection
@@ -521,4 +584,10 @@ const App = () => {
     );
 };
 
-export default App;
+const AppWithErrorBoundary = () => (
+    <ErrorBoundary>
+        <App />
+    </ErrorBoundary>
+);
+
+export default AppWithErrorBoundary;
