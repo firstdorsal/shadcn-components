@@ -181,8 +181,7 @@ const App = () => {
                 {/* ---------------------------------------------------------- */}
                 <DemoSection title={`Getting Started`}>
                     <div className={`rounded-md bg-muted px-4 py-3 font-mono text-sm`}>
-                        npx shadcn@latest add
-                        https://shadcn-date-time-picker.paularmstrong.dev/r/date-time-picker.json
+                        pnpm dlx shadcn@latest add https://firstdorsal.github.io/shadcn-components/r/date-time-picker.json
                     </div>
                 </DemoSection>
 
