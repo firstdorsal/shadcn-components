@@ -9,6 +9,7 @@ export default mergeConfig(
             environment: `jsdom`,
             setupFiles: `./vitest.setup.ts`,
             globals: true,
+            pool: `threads`,
             coverage: {
                 provider: `v8`,
                 reporter: [`text`, `json`, `html`],
