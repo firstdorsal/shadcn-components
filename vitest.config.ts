@@ -6,21 +6,9 @@ export default mergeConfig(
     viteConfig,
     defineConfig({
         test: {
-            environment: `jsdom`,
+            environment: `happy-dom`,
             setupFiles: `./vitest.setup.ts`,
-            globals: true,
-            pool: `threads`,
-            coverage: {
-                provider: `v8`,
-                reporter: [`text`, `json`, `html`],
-                exclude: [
-                    `node_modules/`,
-                    `dist/`,
-                    `**/*.test.{ts,tsx}`,
-                    `**/*.config.{ts,js}`,
-                    `vitest.setup.ts`
-                ]
-            }
+            globals: true
         }
     })
 );
