@@ -1,11 +1,23 @@
 import * as React from "react";
-import { AlertTriangle, Moon, Sun } from "lucide-react";
+import { AlertTriangle, Menu, Moon, Sun, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { HotkeyInput, type Hotkey, formatHotkey } from "@/components/ui/hotkey-input";
 import { DateTimePicker } from "@/registry/new-york/date-time-picker/date-time-picker";
 import { DateTimeRangePicker } from "@/registry/new-york/date-time-picker/date-time-range-picker";
 import type { DateTimeRange } from "@/registry/new-york/date-time-picker/hooks/use-date-time-range-picker";
+
+// ---------------------------------------------------------------------------
+// Navigation items
+// ---------------------------------------------------------------------------
+
+const NAV_ITEMS = [
+    { id: `getting-started`, label: `Getting Started` },
+    { id: `date-time-picker`, label: `Date Time Picker`, isComponent: true },
+    { id: `date-time-range-picker`, label: `Date Time Range Picker`, isComponent: true },
+    { id: `hotkey-input`, label: `Hotkey Input`, isComponent: true },
+] as const;
 
 // ---------------------------------------------------------------------------
 // ErrorBoundary — catches component errors and displays fallback UI
@@ -57,26 +69,64 @@ class ErrorBoundary extends React.Component<
 }
 
 // ---------------------------------------------------------------------------
+// Sidebar
+// ---------------------------------------------------------------------------
+
+const Sidebar = ({
+    activeSection,
+    onNavigate,
+    className
+}: {
+    activeSection: string;
+    onNavigate: (id: string) => void;
+    className?: string;
+}) => (
+    <nav className={cn(`space-y-1`, className)}>
+        <div className={`mb-4 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground`}>
+            Components
+        </div>
+        {NAV_ITEMS.map((item) => (
+            <button
+                key={item.id}
+                onClick={() => onNavigate(item.id)}
+                className={cn(
+                    `block w-full rounded-md px-3 py-2 text-left text-sm transition-colors`,
+                    activeSection === item.id
+                        ? `bg-accent text-accent-foreground font-medium`
+                        : `text-muted-foreground hover:bg-accent/50 hover:text-foreground`
+                )}
+            >
+                {item.label}
+            </button>
+        ))}
+    </nav>
+);
+
+// ---------------------------------------------------------------------------
 // DemoSection — reusable card for each showcase
 // ---------------------------------------------------------------------------
 
 const DemoSection = ({
+    id,
     title,
     description,
     children,
     className
 }: {
+    id?: string;
     title: string;
     description?: string;
     children: React.ReactNode;
     className?: string;
 }) => (
-    <section className={cn(`rounded-lg border bg-card p-6 shadow-sm`, className)}>
+    <section id={id} className={cn(`scroll-mt-20 rounded-lg border bg-card p-6 shadow-sm`, className)}>
         <h2 className={`mb-1 text-lg font-semibold`}>{title}</h2>
         {description && (
             <p className={`text-muted-foreground mb-4 text-sm`}>{description}</p>
         )}
-        {children}
+        <div className={`overflow-x-auto`}>
+            {children}
+        </div>
     </section>
 );
 
@@ -100,10 +150,20 @@ const StateDisplay = ({ label, value }: { label: string; value: string }) => (
     <div className={`mt-3`}>
         <div className={`text-muted-foreground mb-1 text-xs font-medium`}>{label}</div>
         <div
-            className={`text-muted-foreground rounded-md bg-muted px-3 py-2 font-mono text-xs break-all`}
+            className={`text-muted-foreground rounded-md bg-muted px-3 py-2 font-mono text-xs break-all whitespace-pre-wrap`}
         >
             {value}
         </div>
+    </div>
+);
+
+// ---------------------------------------------------------------------------
+// CodeBlock — displays installation commands
+// ---------------------------------------------------------------------------
+
+const CodeBlock = ({ children }: { children: React.ReactNode }) => (
+    <div className={`overflow-x-auto rounded-md bg-muted px-4 py-3 font-mono text-sm`}>
+        <code className={`whitespace-nowrap`}>{children}</code>
     </div>
 );
 
@@ -122,20 +182,25 @@ const App = () => {
         document.documentElement.classList.toggle(`dark`, next);
     };
 
-    // Controlled state for "Controlled" section
-    const [controlledDate, setControlledDate] = React.useState<Date | undefined>(
-        undefined
-    );
+    // Mobile sidebar
+    const [sidebarOpen, setSidebarOpen] = React.useState(false);
+
+    // Active section tracking
+    const [activeSection, setActiveSection] = React.useState(`getting-started`);
+
+    // Controlled state for demos
+    const [controlledDate, setControlledDate] = React.useState<Date | undefined>(undefined);
     const [controlledRange, setControlledRange] = React.useState<DateTimeRange>({
         from: undefined,
         to: undefined
     });
+    const [hotkey, setHotkey] = React.useState<Hotkey | null>(null);
 
-    // Timezone state (shared across demos that use it)
+    // Timezone state
     const [singleTimezone, setSingleTz] = React.useState(`UTC`);
     const [rangeTimezone, setRangeTz] = React.useState(`UTC`);
 
-    // Stable dates for the disabled demo — created once via useState initializer
+    // Stable dates for disabled demo
     const [disabledDemoDate] = React.useState(() => new Date());
     const [disabledDemoRange] = React.useState(() => {
         const now = new Date();
@@ -145,433 +210,400 @@ const App = () => {
         };
     });
 
+    const handleNavigate = (id: string) => {
+        setActiveSection(id);
+        setSidebarOpen(false);
+        const element = document.getElementById(id);
+        if (element) {
+            element.scrollIntoView({ behavior: `smooth` });
+        }
+    };
+
+    // Track active section on scroll
+    React.useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        setActiveSection(entry.target.id);
+                    }
+                });
+            },
+            { rootMargin: `-20% 0px -70% 0px` }
+        );
+
+        NAV_ITEMS.forEach((item) => {
+            const element = document.getElementById(item.id);
+            if (element) observer.observe(element);
+        });
+
+        return () => observer.disconnect();
+    }, []);
+
     return (
         <div className={`min-h-screen bg-background text-foreground`}>
             {/* Header */}
             <header
                 className={`sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60`}
             >
-                <div
-                    className={`mx-auto flex max-w-4xl items-center justify-between px-6 py-4`}
-                >
-                    <div>
-                        <h1 className={`text-xl font-bold tracking-tight`}>
-                            shadcn Date Time Picker
-                        </h1>
-                        <p className={`text-muted-foreground text-sm`}>
-                            A date &amp; time picker built on shadcn/ui, react-day-picker, and
-                            Tailwind CSS 4.
-                        </p>
+                <div className={`flex h-14 items-center justify-between px-4 lg:px-6`}>
+                    <div className={`flex items-center gap-4`}>
+                        <Button
+                            variant={`ghost`}
+                            size={`icon`}
+                            className={`lg:hidden`}
+                            onClick={() => setSidebarOpen(!sidebarOpen)}
+                            aria-label={`Toggle menu`}
+                        >
+                            {sidebarOpen ? <X className={`h-5 w-5`} /> : <Menu className={`h-5 w-5`} />}
+                        </Button>
+                        <div>
+                            <h1 className={`text-lg font-bold tracking-tight`}>
+                                shadcn-components
+                            </h1>
+                        </div>
                     </div>
                     <Button
-                        variant={`outline`}
+                        variant={`ghost`}
                         size={`icon`}
                         onClick={toggleDarkMode}
                         aria-label={`Toggle dark mode`}
                     >
-                        {isDark ? <Sun /> : <Moon />}
+                        {isDark ? <Sun className={`h-5 w-5`} /> : <Moon className={`h-5 w-5`} />}
                     </Button>
                 </div>
             </header>
 
-            {/* Content */}
-            <main className={`mx-auto max-w-4xl space-y-8 px-6 py-8`}>
-                {/* ---------------------------------------------------------- */}
-                {/* Getting Started */}
-                {/* ---------------------------------------------------------- */}
-                <DemoSection title={`Getting Started`}>
-                    <div className={`rounded-md bg-muted px-4 py-3 font-mono text-sm`}>
-                        pnpm dlx shadcn@latest add https://firstdorsal.github.io/shadcn-components/r/date-time-picker.json
+            <div className={`flex`}>
+                {/* Sidebar - Desktop */}
+                <aside className={`hidden lg:block w-64 shrink-0 border-r`}>
+                    <div className={`sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto py-6 px-4`}>
+                        <Sidebar activeSection={activeSection} onNavigate={handleNavigate} />
                     </div>
-                </DemoSection>
+                </aside>
 
-                {/* ---------------------------------------------------------- */}
-                {/* Basic Usage */}
-                {/* ---------------------------------------------------------- */}
-                <DemoSection
-                    title={`Basic Usage`}
-                    description={`Single date-time picker and range picker with default settings.`}
-                >
-                    <div className={`grid grid-cols-1 gap-6 lg:grid-cols-2`}>
-                        <div>
-                            <div
-                                className={`text-muted-foreground mb-2 text-xs font-medium`}
-                            >
-                                Single
-                            </div>
-                            <DateTimePicker timeFormat={`24h`} />
-                            <PropTag>{`timeFormat="24h"`}</PropTag>
-                        </div>
-                        <div>
-                            <div
-                                className={`text-muted-foreground mb-2 text-xs font-medium`}
-                            >
-                                Range
-                            </div>
-                            <DateTimeRangePicker timeFormat={`24h`} />
-                            <PropTag>{`timeFormat="24h"`}</PropTag>
-                        </div>
+                {/* Sidebar - Mobile */}
+                {sidebarOpen && (
+                    <div className={`fixed inset-0 top-14 z-40 lg:hidden`}>
+                        <div
+                            className={`absolute inset-0 bg-background/80 backdrop-blur-sm`}
+                            onClick={() => setSidebarOpen(false)}
+                        />
+                        <aside className={`relative w-64 h-full border-r bg-background p-4 overflow-y-auto`}>
+                            <Sidebar activeSection={activeSection} onNavigate={handleNavigate} />
+                        </aside>
                     </div>
-                </DemoSection>
+                )}
 
-                {/* ---------------------------------------------------------- */}
-                {/* Time Formats */}
-                {/* ---------------------------------------------------------- */}
-                <DemoSection
-                    title={`Time Formats`}
-                    description={`12-hour and 24-hour time display.`}
-                >
-                    <div className={`grid grid-cols-1 gap-6 lg:grid-cols-2`}>
-                        <div>
-                            <div
-                                className={`text-muted-foreground mb-2 text-xs font-medium`}
-                            >
-                                12-hour
+                {/* Main Content */}
+                <main className={`flex-1 min-w-0 px-4 py-8 lg:px-8`}>
+                    <div className={`mx-auto max-w-3xl space-y-8`}>
+                        {/* Getting Started */}
+                        <section id={`getting-started`} className={`scroll-mt-20 space-y-4`}>
+                            <div>
+                                <h1 className={`text-3xl font-bold tracking-tight`}>Components</h1>
+                                <p className={`mt-2 text-muted-foreground`}>
+                                    A collection of components built with shadcn/ui, react-day-picker, and Tailwind CSS.
+                                </p>
                             </div>
-                            <DateTimePicker timeFormat={`12h`} />
-                            <PropTag>{`timeFormat="12h"`}</PropTag>
-                        </div>
-                        <div>
-                            <div
-                                className={`text-muted-foreground mb-2 text-xs font-medium`}
-                            >
-                                24-hour
+
+                            <DemoSection title={`Installation`}>
+                                <p className={`text-sm text-muted-foreground mb-4`}>
+                                    Install components directly from the registry using the shadcn CLI.
+                                </p>
+                                <div className={`space-y-3`}>
+                                    <div>
+                                        <div className={`text-xs font-medium text-muted-foreground mb-1`}>Date Time Picker</div>
+                                        <CodeBlock>pnpm dlx shadcn@latest add https://firstdorsal.github.io/shadcn-components/r/date-time-picker.json</CodeBlock>
+                                    </div>
+                                    <div>
+                                        <div className={`text-xs font-medium text-muted-foreground mb-1`}>Hotkey Input</div>
+                                        <CodeBlock>pnpm dlx shadcn@latest add https://firstdorsal.github.io/shadcn-components/r/hotkey-input.json</CodeBlock>
+                                    </div>
+                                    <div>
+                                        <div className={`text-xs font-medium text-muted-foreground mb-1`}>Enhanced Calendar</div>
+                                        <CodeBlock>pnpm dlx shadcn@latest add https://firstdorsal.github.io/shadcn-components/r/calendar.json</CodeBlock>
+                                    </div>
+                                </div>
+                            </DemoSection>
+                        </section>
+
+                        {/* Date Time Picker */}
+                        <section id={`date-time-picker`} className={`scroll-mt-20 space-y-6`}>
+                            <div>
+                                <h2 className={`text-2xl font-bold tracking-tight`}>Date Time Picker</h2>
+                                <p className={`mt-1 text-muted-foreground`}>
+                                    A date and time picker with calendar popover, timezone support, and configurable time format.
+                                </p>
                             </div>
-                            <DateTimePicker timeFormat={`24h`} />
-                            <PropTag>{`timeFormat="24h"`}</PropTag>
-                        </div>
+
+                            <DemoSection
+                                title={`Basic Usage`}
+                                description={`Default date-time picker with 24-hour format.`}
+                            >
+                                <DateTimePicker timeFormat={`24h`} />
+                                <PropTag>{`timeFormat="24h"`}</PropTag>
+                            </DemoSection>
+
+                            <DemoSection
+                                title={`Time Formats`}
+                                description={`12-hour and 24-hour time display.`}
+                            >
+                                <div className={`grid gap-6 sm:grid-cols-2`}>
+                                    <div>
+                                        <div className={`text-muted-foreground mb-2 text-xs font-medium`}>12-hour</div>
+                                        <DateTimePicker timeFormat={`12h`} />
+                                        <PropTag>{`timeFormat="12h"`}</PropTag>
+                                    </div>
+                                    <div>
+                                        <div className={`text-muted-foreground mb-2 text-xs font-medium`}>24-hour</div>
+                                        <DateTimePicker timeFormat={`24h`} />
+                                        <PropTag>{`timeFormat="24h"`}</PropTag>
+                                    </div>
+                                </div>
+                            </DemoSection>
+
+                            <DemoSection
+                                title={`With Seconds`}
+                                description={`Optional seconds display for precise time selection.`}
+                            >
+                                <DateTimePicker timeFormat={`24h`} showSeconds={true} />
+                                <PropTag>{`showSeconds={true}`}</PropTag>
+                            </DemoSection>
+
+                            <DemoSection
+                                title={`Timezone Support`}
+                                description={`Built-in timezone selector.`}
+                            >
+                                <DateTimePicker
+                                    timeFormat={`24h`}
+                                    showTimezone={true}
+                                    timeZone={singleTimezone}
+                                    onTimezoneChange={setSingleTz}
+                                />
+                                <PropTag>{`showTimezone timeZone="${singleTimezone}"`}</PropTag>
+                            </DemoSection>
+
+                            <DemoSection
+                                title={`Disable Future Dates`}
+                                description={`Prevent selecting dates in the future.`}
+                            >
+                                <DateTimePicker timeFormat={`24h`} disableFuture={true} />
+                                <PropTag>disableFuture</PropTag>
+                            </DemoSection>
+
+                            <DemoSection
+                                title={`Layout Options`}
+                                description={`Time picker placement relative to the calendar.`}
+                            >
+                                <div className={`grid gap-6 sm:grid-cols-2`}>
+                                    <div>
+                                        <div className={`text-muted-foreground mb-2 text-xs font-medium`}>Time below</div>
+                                        <DateTimePicker timeFormat={`24h`} timeLayout={`below`} />
+                                        <PropTag>{`timeLayout="below"`}</PropTag>
+                                    </div>
+                                    <div>
+                                        <div className={`text-muted-foreground mb-2 text-xs font-medium`}>Time beside</div>
+                                        <DateTimePicker timeFormat={`24h`} timeLayout={`beside`} />
+                                        <PropTag>{`timeLayout="beside"`}</PropTag>
+                                    </div>
+                                </div>
+                            </DemoSection>
+
+                            <DemoSection
+                                title={`Controlled`}
+                                description={`Fully controlled via value/onChange.`}
+                            >
+                                <DateTimePicker
+                                    value={controlledDate}
+                                    onChange={setControlledDate}
+                                    timeFormat={`24h`}
+                                />
+                                <StateDisplay
+                                    label={`State`}
+                                    value={controlledDate ? controlledDate.toISOString() : `undefined`}
+                                />
+                                <div className={`mt-2 flex gap-2`}>
+                                    <Button variant={`outline`} size={`sm`} onClick={() => setControlledDate(new Date())}>
+                                        Set to now
+                                    </Button>
+                                    <Button variant={`outline`} size={`sm`} onClick={() => setControlledDate(undefined)}>
+                                        Clear
+                                    </Button>
+                                </div>
+                            </DemoSection>
+
+                            <DemoSection
+                                title={`Disabled`}
+                                description={`Disabled state.`}
+                            >
+                                <DateTimePicker timeFormat={`24h`} disabled={true} defaultValue={disabledDemoDate} />
+                                <PropTag>disabled</PropTag>
+                            </DemoSection>
+                        </section>
+
+                        {/* Date Time Range Picker */}
+                        <section id={`date-time-range-picker`} className={`scroll-mt-20 space-y-6`}>
+                            <div>
+                                <h2 className={`text-2xl font-bold tracking-tight`}>Date Time Range Picker</h2>
+                                <p className={`mt-1 text-muted-foreground`}>
+                                    Select a date range with drag-to-resize functionality and duration display.
+                                </p>
+                            </div>
+
+                            <DemoSection
+                                title={`Basic Usage`}
+                                description={`Default range picker with drag support.`}
+                            >
+                                <DateTimeRangePicker timeFormat={`24h`} />
+                            </DemoSection>
+
+                            <DemoSection
+                                title={`Duration Display`}
+                                description={`Show the number of days and nights.`}
+                            >
+                                <DateTimeRangePicker timeFormat={`24h`} showDuration={true} />
+                                <PropTag>showDuration</PropTag>
+                            </DemoSection>
+
+                            <DemoSection
+                                title={`With Timezone`}
+                                description={`Timezone selector for range picker.`}
+                            >
+                                <DateTimeRangePicker
+                                    timeFormat={`24h`}
+                                    showTimezone={true}
+                                    timeZone={rangeTimezone}
+                                    onTimezoneChange={setRangeTz}
+                                />
+                                <PropTag>{`showTimezone timeZone="${rangeTimezone}"`}</PropTag>
+                            </DemoSection>
+
+                            <DemoSection
+                                title={`Disable Future`}
+                                description={`Prevent selecting future dates.`}
+                            >
+                                <DateTimeRangePicker timeFormat={`24h`} disableFuture={true} />
+                                <PropTag>disableFuture</PropTag>
+                            </DemoSection>
+
+                            <DemoSection
+                                title={`Custom Placeholders`}
+                                description={`Override default placeholder text.`}
+                            >
+                                <DateTimeRangePicker
+                                    timeFormat={`24h`}
+                                    startPlaceholder={`Check-in`}
+                                    endPlaceholder={`Check-out`}
+                                />
+                                <PropTag>{`startPlaceholder="Check-in" endPlaceholder="Check-out"`}</PropTag>
+                            </DemoSection>
+
+                            <DemoSection
+                                title={`Controlled`}
+                                description={`Fully controlled via value/onChange.`}
+                            >
+                                <DateTimeRangePicker
+                                    value={controlledRange}
+                                    onChange={setControlledRange}
+                                    timeFormat={`24h`}
+                                />
+                                <StateDisplay
+                                    label={`State`}
+                                    value={`from: ${controlledRange.from?.toISOString() ?? `undefined`}\nto: ${controlledRange.to?.toISOString() ?? `undefined`}`}
+                                />
+                                <div className={`mt-2 flex gap-2`}>
+                                    <Button
+                                        variant={`outline`}
+                                        size={`sm`}
+                                        onClick={() =>
+                                            setControlledRange({
+                                                from: new Date(),
+                                                to: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+                                            })
+                                        }
+                                    >
+                                        Set week
+                                    </Button>
+                                    <Button
+                                        variant={`outline`}
+                                        size={`sm`}
+                                        onClick={() => setControlledRange({ from: undefined, to: undefined })}
+                                    >
+                                        Clear
+                                    </Button>
+                                </div>
+                            </DemoSection>
+
+                            <DemoSection
+                                title={`Disabled`}
+                                description={`Disabled state.`}
+                            >
+                                <DateTimeRangePicker
+                                    timeFormat={`24h`}
+                                    disabled={true}
+                                    defaultValue={disabledDemoRange}
+                                />
+                                <PropTag>disabled</PropTag>
+                            </DemoSection>
+                        </section>
+
+                        {/* Hotkey Input */}
+                        <section id={`hotkey-input`} className={`scroll-mt-20 space-y-6`}>
+                            <div>
+                                <h2 className={`text-2xl font-bold tracking-tight`}>Hotkey Input</h2>
+                                <p className={`mt-1 text-muted-foreground`}>
+                                    A keyboard shortcut input component for capturing key combinations.
+                                </p>
+                            </div>
+
+                            <DemoSection
+                                title={`Basic Usage`}
+                                description={`Click and press a key combination to capture it.`}
+                            >
+                                <HotkeyInput
+                                    value={hotkey}
+                                    onChange={setHotkey}
+                                    placeholder={`Press a key combination...`}
+                                />
+                                <StateDisplay
+                                    label={`Captured Hotkey`}
+                                    value={hotkey ? formatHotkey(hotkey) : `None`}
+                                />
+                            </DemoSection>
+
+                            <DemoSection
+                                title={`Allow Modifier Only`}
+                                description={`Capture modifier-only shortcuts like Ctrl+Shift.`}
+                            >
+                                <HotkeyInput
+                                    allowModifierOnly={true}
+                                    placeholder={`Try Ctrl+Shift...`}
+                                />
+                                <PropTag>allowModifierOnly</PropTag>
+                            </DemoSection>
+
+                            <DemoSection
+                                title={`Disabled`}
+                                description={`Disabled state.`}
+                            >
+                                <HotkeyInput
+                                    disabled={true}
+                                    defaultValue={{
+                                        key: `k`,
+                                        code: `KeyK`,
+                                        ctrlKey: true,
+                                        shiftKey: false,
+                                        altKey: false,
+                                        metaKey: false
+                                    }}
+                                />
+                                <PropTag>disabled</PropTag>
+                            </DemoSection>
+                        </section>
                     </div>
-                </DemoSection>
-
-                {/* ---------------------------------------------------------- */}
-                {/* Seconds */}
-                {/* ---------------------------------------------------------- */}
-                <DemoSection
-                    title={`Seconds`}
-                    description={`Optional seconds display for precise time selection.`}
-                >
-                    <div className={`grid grid-cols-1 gap-6 lg:grid-cols-2`}>
-                        <div>
-                            <div
-                                className={`text-muted-foreground mb-2 text-xs font-medium`}
-                            >
-                                Without seconds
-                            </div>
-                            <DateTimePicker timeFormat={`24h`} showSeconds={false} />
-                            <PropTag>{`showSeconds={false}`}</PropTag>
-                        </div>
-                        <div>
-                            <div
-                                className={`text-muted-foreground mb-2 text-xs font-medium`}
-                            >
-                                With seconds
-                            </div>
-                            <DateTimePicker timeFormat={`24h`} showSeconds={true} />
-                            <PropTag>{`showSeconds={true}`}</PropTag>
-                        </div>
-                    </div>
-                </DemoSection>
-
-                {/* ---------------------------------------------------------- */}
-                {/* Timezone Support */}
-                {/* ---------------------------------------------------------- */}
-                <DemoSection
-                    title={`Timezone Support`}
-                    description={`Timezone selector for both single and range pickers.`}
-                >
-                    <div className={`grid grid-cols-1 gap-6 lg:grid-cols-2`}>
-                        <div>
-                            <div
-                                className={`text-muted-foreground mb-2 text-xs font-medium`}
-                            >
-                                Single + Timezone
-                            </div>
-                            <DateTimePicker
-                                timeFormat={`24h`}
-                                showTimezone={true}
-                                timeZone={singleTimezone}
-                                onTimezoneChange={setSingleTz}
-                            />
-                            <PropTag>{`showTimezone timeZone="${singleTimezone}"`}</PropTag>
-                        </div>
-                        <div>
-                            <div
-                                className={`text-muted-foreground mb-2 text-xs font-medium`}
-                            >
-                                Range + Timezone
-                            </div>
-                            <DateTimeRangePicker
-                                timeFormat={`24h`}
-                                showTimezone={true}
-                                timeZone={rangeTimezone}
-                                onTimezoneChange={setRangeTz}
-                            />
-                            <PropTag>{`showTimezone timeZone="${rangeTimezone}"`}</PropTag>
-                        </div>
-                    </div>
-                </DemoSection>
-
-                {/* ---------------------------------------------------------- */}
-                {/* Disable Future Dates */}
-                {/* ---------------------------------------------------------- */}
-                <DemoSection
-                    title={`Disable Future Dates`}
-                    description={`Prevent selecting dates in the future.`}
-                >
-                    <div className={`grid grid-cols-1 gap-6 lg:grid-cols-2`}>
-                        <div>
-                            <div
-                                className={`text-muted-foreground mb-2 text-xs font-medium`}
-                            >
-                                Single
-                            </div>
-                            <DateTimePicker
-                                timeFormat={`24h`}
-                                disableFuture={true}
-                            />
-                            <PropTag>disableFuture</PropTag>
-                        </div>
-                        <div>
-                            <div
-                                className={`text-muted-foreground mb-2 text-xs font-medium`}
-                            >
-                                Range
-                            </div>
-                            <DateTimeRangePicker
-                                timeFormat={`24h`}
-                                disableFuture={true}
-                            />
-                            <PropTag>disableFuture</PropTag>
-                        </div>
-                    </div>
-                </DemoSection>
-
-                {/* ---------------------------------------------------------- */}
-                {/* Layout Options */}
-                {/* ---------------------------------------------------------- */}
-                <DemoSection
-                    title={`Layout Options`}
-                    description={`Time picker placement relative to the calendar.`}
-                >
-                    <div className={`grid grid-cols-1 gap-6 lg:grid-cols-2`}>
-                        <div>
-                            <div
-                                className={`text-muted-foreground mb-2 text-xs font-medium`}
-                            >
-                                Time below (default)
-                            </div>
-                            <DateTimePicker
-                                timeFormat={`24h`}
-                                timeLayout={`below`}
-                            />
-                            <PropTag>{`timeLayout="below"`}</PropTag>
-                        </div>
-                        <div>
-                            <div
-                                className={`text-muted-foreground mb-2 text-xs font-medium`}
-                            >
-                                Time beside
-                            </div>
-                            <DateTimePicker
-                                timeFormat={`24h`}
-                                timeLayout={`beside`}
-                            />
-                            <PropTag>{`timeLayout="beside"`}</PropTag>
-                        </div>
-                    </div>
-                </DemoSection>
-
-                {/* ---------------------------------------------------------- */}
-                {/* Draggable Range */}
-                {/* ---------------------------------------------------------- */}
-                <DemoSection
-                    title={`Draggable Range`}
-                    description={`Select a range, then drag the start or end marker to resize. Works with both mouse and touch. You can also click-drag to create a new range from scratch.`}
-                >
-                    <DateTimeRangePicker timeFormat={`24h`} />
-                    <PropTag>(drag built-in for range picker)</PropTag>
-                </DemoSection>
-
-                {/* ---------------------------------------------------------- */}
-                {/* Duration Display */}
-                {/* ---------------------------------------------------------- */}
-                <DemoSection
-                    title={`Duration Display`}
-                    description={`Show the number of days and nights below the range inputs.`}
-                >
-                    <DateTimeRangePicker
-                        timeFormat={`24h`}
-                        showDuration={true}
-                    />
-                    <PropTag>showDuration</PropTag>
-                </DemoSection>
-
-                {/* ---------------------------------------------------------- */}
-                {/* Disabled State */}
-                {/* ---------------------------------------------------------- */}
-                <DemoSection
-                    title={`Disabled State`}
-                    description={`Both pickers support a disabled prop.`}
-                >
-                    <div className={`grid grid-cols-1 gap-6 lg:grid-cols-2`}>
-                        <div>
-                            <div
-                                className={`text-muted-foreground mb-2 text-xs font-medium`}
-                            >
-                                Single (disabled)
-                            </div>
-                            <DateTimePicker
-                                timeFormat={`24h`}
-                                disabled={true}
-                                defaultValue={disabledDemoDate}
-                            />
-                            <PropTag>disabled</PropTag>
-                        </div>
-                        <div>
-                            <div
-                                className={`text-muted-foreground mb-2 text-xs font-medium`}
-                            >
-                                Range (disabled)
-                            </div>
-                            <DateTimeRangePicker
-                                timeFormat={`24h`}
-                                disabled={true}
-                                defaultValue={disabledDemoRange}
-                            />
-                            <PropTag>disabled</PropTag>
-                        </div>
-                    </div>
-                </DemoSection>
-
-                {/* ---------------------------------------------------------- */}
-                {/* Controlled Values */}
-                {/* ---------------------------------------------------------- */}
-                <DemoSection
-                    title={`Controlled Values`}
-                    description={`Fully controlled via value/onChange with live state display and programmatic control.`}
-                >
-                    <div className={`grid grid-cols-1 gap-6 lg:grid-cols-2`}>
-                        <div>
-                            <div
-                                className={`text-muted-foreground mb-2 text-xs font-medium`}
-                            >
-                                Single (controlled)
-                            </div>
-                            <DateTimePicker
-                                value={controlledDate}
-                                onChange={setControlledDate}
-                                timeFormat={`24h`}
-                            />
-                            <StateDisplay
-                                label={`State`}
-                                value={
-                                    controlledDate
-                                        ? controlledDate.toISOString()
-                                        : `undefined`
-                                }
-                            />
-                            <div className={`mt-2 flex gap-2`}>
-                                <Button
-                                    variant={`outline`}
-                                    size={`sm`}
-                                    onClick={() => setControlledDate(new Date())}
-                                >
-                                    Set to now
-                                </Button>
-                                <Button
-                                    variant={`outline`}
-                                    size={`sm`}
-                                    onClick={() => setControlledDate(undefined)}
-                                >
-                                    Clear
-                                </Button>
-                            </div>
-                        </div>
-                        <div>
-                            <div
-                                className={`text-muted-foreground mb-2 text-xs font-medium`}
-                            >
-                                Range (controlled)
-                            </div>
-                            <DateTimeRangePicker
-                                value={controlledRange}
-                                onChange={setControlledRange}
-                                timeFormat={`24h`}
-                            />
-                            <StateDisplay
-                                label={`State`}
-                                value={`from: ${controlledRange.from?.toISOString() ?? `undefined`}\nto: ${controlledRange.to?.toISOString() ?? `undefined`}`}
-                            />
-                            <div className={`mt-2 flex gap-2`}>
-                                <Button
-                                    variant={`outline`}
-                                    size={`sm`}
-                                    onClick={() =>
-                                        setControlledRange({
-                                            from: new Date(),
-                                            to: new Date(
-                                                Date.now() + 7 * 24 * 60 * 60 * 1000
-                                            )
-                                        })
-                                    }
-                                >
-                                    Set week
-                                </Button>
-                                <Button
-                                    variant={`outline`}
-                                    size={`sm`}
-                                    onClick={() =>
-                                        setControlledRange({
-                                            from: undefined,
-                                            to: undefined
-                                        })
-                                    }
-                                >
-                                    Clear
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                </DemoSection>
-
-                {/* ---------------------------------------------------------- */}
-                {/* Custom Placeholders */}
-                {/* ---------------------------------------------------------- */}
-                <DemoSection
-                    title={`Custom Placeholders`}
-                    description={`Override default placeholder text on the inputs.`}
-                >
-                    <div className={`grid grid-cols-1 gap-6 lg:grid-cols-2`}>
-                        <div>
-                            <div
-                                className={`text-muted-foreground mb-2 text-xs font-medium`}
-                            >
-                                Single
-                            </div>
-                            <DateTimePicker
-                                timeFormat={`24h`}
-                                placeholder={`Pick a date...`}
-                            />
-                            <PropTag>{`placeholder="Pick a date..."`}</PropTag>
-                        </div>
-                        <div>
-                            <div
-                                className={`text-muted-foreground mb-2 text-xs font-medium`}
-                            >
-                                Range
-                            </div>
-                            <DateTimeRangePicker
-                                timeFormat={`24h`}
-                                startPlaceholder={`Check-in`}
-                                endPlaceholder={`Check-out`}
-                            />
-                            <PropTag>
-                                {`startPlaceholder="Check-in" endPlaceholder="Check-out"`}
-                            </PropTag>
-                        </div>
-                    </div>
-                </DemoSection>
-            </main>
+                </main>
+            </div>
 
             {/* Footer */}
             <footer className={`border-t py-6 text-center`}>
