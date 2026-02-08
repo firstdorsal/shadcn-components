@@ -463,6 +463,95 @@ describe(`HotkeyInput`, () => {
 
       expect(onChange).toHaveBeenCalledWith(null)
     })
+
+    it(`enters recording mode after clearing`, () => {
+      const hotkey: Hotkey = {
+        key: `a`,
+        code: `KeyA`,
+        ctrlKey: true,
+        shiftKey: false,
+        altKey: false,
+        metaKey: false,
+      }
+      render(<HotkeyInput defaultValue={hotkey} />)
+
+      const input = screen.getByRole(`textbox`)
+      fireEvent.focus(input)
+
+      // Capture a new hotkey
+      fireEvent.keyDown(input, { key: `b`, code: `KeyB`, ctrlKey: true })
+      expect(screen.getByText(`Ctrl + B`)).toBeInTheDocument()
+      expect(screen.queryByText(`Recording...`)).not.toBeInTheDocument()
+
+      // Clear the hotkey
+      const clearButton = screen.getByRole(`button`, { name: `Clear hotkey` })
+      fireEvent.click(clearButton)
+
+      // Should show Recording... since we're still focused and value is cleared
+      expect(screen.getByText(`Recording...`)).toBeInTheDocument()
+    })
+
+    it(`can capture new hotkey immediately after clearing`, () => {
+      const onChange = vi.fn()
+      const hotkey: Hotkey = {
+        key: `a`,
+        code: `KeyA`,
+        ctrlKey: true,
+        shiftKey: false,
+        altKey: false,
+        metaKey: false,
+      }
+      render(<HotkeyInput defaultValue={hotkey} onChange={onChange} />)
+
+      const input = screen.getByRole(`textbox`)
+      fireEvent.focus(input)
+
+      // Capture a hotkey first
+      fireEvent.keyDown(input, { key: `b`, code: `KeyB`, ctrlKey: true })
+      onChange.mockClear()
+
+      // Clear it
+      const clearButton = screen.getByRole(`button`, { name: `Clear hotkey` })
+      fireEvent.click(clearButton)
+      onChange.mockClear()
+
+      // Should be able to capture a new hotkey immediately
+      fireEvent.keyDown(input, { key: `c`, code: `KeyC`, shiftKey: true })
+
+      expect(onChange).toHaveBeenCalledWith({
+        key: `c`,
+        code: `KeyC`,
+        ctrlKey: false,
+        shiftKey: true,
+        altKey: false,
+        metaKey: false,
+      })
+    })
+
+    it(`shows ring style after clearing (indicating recording mode)`, () => {
+      const hotkey: Hotkey = {
+        key: `a`,
+        code: `KeyA`,
+        ctrlKey: true,
+        shiftKey: false,
+        altKey: false,
+        metaKey: false,
+      }
+      render(<HotkeyInput defaultValue={hotkey} />)
+
+      const input = screen.getByRole(`textbox`)
+      fireEvent.focus(input)
+
+      // Capture a hotkey (exits recording mode)
+      fireEvent.keyDown(input, { key: `b`, code: `KeyB` })
+      expect(input).not.toHaveClass(`ring-1`)
+
+      // Clear the hotkey - should re-enter recording mode
+      const clearButton = screen.getByRole(`button`, { name: `Clear hotkey` })
+      fireEvent.click(clearButton)
+
+      expect(input).toHaveClass(`ring-1`)
+    })
   })
 
   describe(`disabled state`, () => {

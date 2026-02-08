@@ -1,6 +1,6 @@
 {
     "name": "@firstdorsal/shadcn-components",
-    "description": "Production-ready shadcn component registry with date-time picker, hotkey input, and enhanced calendar.",
+    "description": "A collection of production-ready shadcn components.",
     "private": true,
     "version": "1.0.0",
     "type": "module",
@@ -46,6 +46,7 @@
         "react": "^19.1.1",
         "react-day-picker": "^9.13.0",
         "react-dom": "^19.1.1",
+        "react-router-dom": "^7.13.0",
         "tailwind-merge": "^3.3.1",
         "tailwindcss": "^4.1.16",
         "tailwindcss-animate": "^1.0.7"

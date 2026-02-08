@@ -1,6 +1,6 @@
 # @firstdorsal/shadcn-components
 
-A production-ready shadcn component registry with date-time picker, hotkey input, and enhanced calendar components.
+A collection of production-ready shadcn components installable via the shadcn CLI.
 
 **Live Demo:** [firstdorsal.github.io/shadcn-components](https://firstdorsal.github.io/shadcn-components)
 

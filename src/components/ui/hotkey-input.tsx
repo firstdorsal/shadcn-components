@@ -283,6 +283,7 @@ const HotkeyInput = React.forwardRef<HTMLDivElement, HotkeyInputProps>(
       (event: React.MouseEvent) => {
         event.stopPropagation()
         setValue(null)
+        setIsRecording(true)
       },
       [setValue]
     )
